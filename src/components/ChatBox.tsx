@@ -87,7 +87,8 @@ export function ChatBox({ location }: ChatBoxProps) {
 
       // Process with Gemini
       const base64Image = userImage ? userImage.split(',')[1] : undefined;
-      const aiResponse = await processChat(userMessage, base64Image, location);
+      const imageMimeType = userImage ? userImage.split(';')[0].split(':')[1] : undefined;
+      const aiResponse = await processChat(userMessage, base64Image, imageMimeType, location);
 
       // Save AI response
       await addDoc(collection(db, 'chats'), {

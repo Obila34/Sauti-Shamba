@@ -88,17 +88,19 @@ export async function processVoiceNote(audioBase64: string, mimeType: string, lo
   };
 }
 
-export async function processChat(message: string, imageBase64?: string, location?: string): Promise<string> {
+export async function processChat(message: string, imageBase64?: string, imageMimeType?: string, location?: string): Promise<string> {
   const parts: any[] = [
     {
-      text: `You are Sauti-Shamba, a friendly AI farm advisor. 
-      The user is in ${location || 'Kenya'}.
-      Provide specific, practical farm advice. 
-      If an image is provided, analyze it for crop health, pests, or diseases.
+      text: `You are Sauti-Shamba, a friendly AI farm advisor for smallholder farmers in Kenya. 
+      The user is currently in ${location || 'Kenya'}.
+      
+      Your goal is to provide specific, practical, and actionable farm advice. 
+      ${imageBase64 ? "The user has uploaded an image. Please analyze it carefully. Identify the crop if possible, and check for any signs of pests, diseases, or nutrient deficiencies. Provide a diagnosis and suggest 1-2 local, affordable remedies." : ""}
+      
       Always respond in a helpful, encouraging tone.
       Respond in Swahili first, then English.
       
-      User message: ${message}`,
+      User message: ${message || (imageBase64 ? "Please analyze this image of my farm/crop." : "")}`,
     },
   ];
 
@@ -106,7 +108,7 @@ export async function processChat(message: string, imageBase64?: string, locatio
     parts.push({
       inlineData: {
         data: imageBase64,
-        mimeType: "image/jpeg", // Assuming jpeg, can be improved
+        mimeType: imageMimeType || "image/jpeg",
       },
     });
   }
