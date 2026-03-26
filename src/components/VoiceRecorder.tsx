@@ -47,33 +47,45 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onRecordingComplet
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8">
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onMouseDown={startRecording}
-        onMouseUp={stopRecording}
-        onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
-        onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
-        disabled={isProcessing}
-        className={`w-48 h-48 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all duration-300 ${
-          isRecording ? 'bg-red-500 scale-110 ring-8 ring-red-100' : 'bg-green-600'
-        } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+    <div className="flex flex-col items-center justify-center p-12 min-h-[400px]">
+      <div className="orb-container">
+        <div className="orb-aurora" />
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
+          onMouseDown={startRecording}
+          onMouseUp={stopRecording}
+          onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
+          onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
+          disabled={isProcessing}
+          className={`orb-core ${
+            isProcessing ? 'orb-processing' : isRecording ? 'orb-listening' : 'orb-idle'
+          } flex items-center justify-center cursor-pointer border-none outline-none`}
+        >
+          {isProcessing ? (
+            <Loader2 className="w-12 h-12 text-white/80 animate-spin" />
+          ) : isRecording ? (
+            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <div className="w-6 h-6 bg-white rounded-sm" />
+            </div>
+          ) : (
+            <Mic className="w-12 h-12 text-white/90" />
+          )}
+        </motion.button>
+      </div>
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-12 text-center space-y-2"
       >
-        {isProcessing ? (
-          <Loader2 className="w-16 h-16 text-white animate-spin" />
-        ) : isRecording ? (
-          <Square className="w-16 h-16 text-white" />
-        ) : (
-          <Mic className="w-16 h-16 text-white" />
-        )}
-        <span className="text-white font-bold mt-2 text-center px-4">
-          {isProcessing ? 'Inachakata...' : isRecording ? 'Acha Kurekodi' : 'Rekodi Sauti'}
-        </span>
-      </motion.button>
-      <p className="mt-4 text-gray-600 font-medium text-lg">
-        {isRecording ? 'Tusikilize shamba lako...' : 'Bonyeza kurekodi ujumbe wako'}
-      </p>
+        <p className="text-2xl font-light tracking-tight text-black/80">
+          {isProcessing ? 'Inachakata...' : isRecording ? 'Tusikilize...' : 'Sema na Sauti'}
+        </p>
+        <p className="text-sm text-black/40 font-medium uppercase tracking-[0.2em]">
+          {isRecording ? 'Release to process' : 'Press and hold to speak'}
+        </p>
+      </motion.div>
     </div>
   );
 };

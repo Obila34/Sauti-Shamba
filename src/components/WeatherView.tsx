@@ -60,44 +60,39 @@ export function WeatherView({ location }: { location: string }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-3xl text-white shadow-xl">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-3xl font-black tracking-tight uppercase">{location}</h2>
-            <p className="opacity-80 font-medium">Utabiri wa siku 3 (3-Day Forecast)</p>
-          </div>
-          <Cloud className="w-12 h-12 opacity-50" />
-        </div>
-        <p className="text-lg font-medium leading-tight">{weather?.summary}</p>
+    <div className="space-y-12">
+      <div className="text-center space-y-2">
+        <h2 className="text-4xl font-light tracking-tight">{location}</h2>
+        <p className="text-sm text-black/40 font-medium uppercase tracking-[0.2em]">3-Day Forecast</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {weather?.forecast.map((day, i) => (
-          <motion.div 
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-white p-5 rounded-2xl shadow-md border border-blue-50"
-          >
-            <div className="flex justify-between items-center mb-3">
-              <span className="font-black text-blue-600 uppercase text-sm">{day.day}</span>
-              {day.condition.toLowerCase().includes('rain') ? <CloudRain className="text-blue-400" /> : <Sun className="text-yellow-500" />}
-            </div>
-            <div className="flex items-center gap-2 mb-3">
-              <Thermometer className="w-4 h-4 text-gray-400" />
-              <span className="text-2xl font-black text-gray-800">{day.temp}</span>
-            </div>
-            <p className="text-sm font-bold text-gray-600 mb-2">{day.condition}</p>
-            <div className="bg-blue-50 p-3 rounded-xl">
-              <p className="text-xs text-blue-800 leading-tight font-medium">
-                <span className="font-bold uppercase block mb-1 text-[10px]">Ushauri (Advice):</span>
-                {day.impact}
-              </p>
-            </div>
-          </motion.div>
-        ))}
+      <div className="space-y-6">
+        <div className="glass p-8 rounded-[32px] apple-shadow text-center">
+          <p className="text-xl font-light leading-relaxed text-black/80 italic">
+            "{weather?.summary}"
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {weather?.forecast.map((day, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="glass p-6 rounded-[24px] apple-shadow space-y-4 apple-transition hover:translate-y-[-2px]"
+            >
+              <div className="flex justify-between items-start">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/30">{day.day}</span>
+                <span className="text-lg font-medium tracking-tight text-apple-blue">{day.temp}</span>
+              </div>
+              <div className="space-y-1">
+                <div className="text-lg font-light">{day.condition}</div>
+                <p className="text-xs text-black/40 leading-relaxed">{day.impact}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

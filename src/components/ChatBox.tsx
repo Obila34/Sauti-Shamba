@@ -139,70 +139,77 @@ export function ChatBox({ location, user }: ChatBoxProps) {
   };
 
   return (
-    <div className="flex flex-col h-[500px] bg-white rounded-2xl shadow-xl overflow-hidden border border-green-100">
-      <div className="bg-green-600 p-4 text-white font-bold flex items-center gap-2">
-        <Bot className="w-5 h-5" />
-        Mshauri wa Shamba (Farm Advisor Chat)
-      </div>
-
+    <div className="flex flex-col h-[600px] glass apple-shadow rounded-[32px] overflow-hidden">
+      {/* Chat Messages */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+        className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar"
       >
-        {messages.length === 0 && (
-          <div className="text-center py-10 text-gray-400">
-            <Bot className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            <p className="text-sm">Uliza swali lolote kuhusu shamba lako.<br/>(Ask any question about your farm.)</p>
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40">
+            <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center">
+              <Send className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-medium uppercase tracking-widest">No messages yet</p>
           </div>
-        )}
-        {messages.map((msg) => (
-          <div 
-            key={msg.id}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div className={`max-w-[80%] rounded-2xl p-3 shadow-sm ${
-              msg.role === 'user' 
-                ? 'bg-green-600 text-white rounded-tr-none' 
-                : 'bg-white text-gray-800 rounded-tl-none border border-green-50'
-            }`}>
-              {msg.imageUrl && (
-                <img 
-                  src={msg.imageUrl} 
-                  alt="User upload" 
-                  className="w-full max-h-48 object-cover rounded-lg mb-2"
-                  referrerPolicy="no-referrer"
-                />
-              )}
-              <div className="prose prose-sm max-w-none prose-p:leading-tight">
-                <Markdown>{msg.content}</Markdown>
+        ) : (
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[85%] p-4 rounded-2xl ${
+                  msg.role === 'user'
+                    ? 'bg-apple-blue text-white apple-shadow'
+                    : 'bg-black/5 text-black'
+                }`}
+              >
+                {msg.imageUrl && (
+                  <img
+                    src={msg.imageUrl}
+                    alt="Uploaded"
+                    className="rounded-xl mb-3 w-full object-cover apple-shadow"
+                    referrerPolicy="no-referrer"
+                  />
+                )}
+                <div className="prose prose-sm max-w-none prose-p:leading-relaxed">
+                  <Markdown>{msg.content}</Markdown>
+                </div>
+                <div className={`text-[10px] mt-2 font-medium uppercase tracking-widest ${
+                  msg.role === 'user' ? 'text-white/40' : 'text-black/20'
+                }`}>
+                  {msg.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
         {isSending && (
           <div className="flex justify-start">
-            <div className="bg-white border border-green-50 rounded-2xl rounded-tl-none p-3 shadow-sm flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-green-600" />
-              <span className="text-xs text-gray-400 font-bold uppercase">Anatafakari...</span>
+            <div className="bg-black/5 text-black/40 rounded-2xl p-3 flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-[10px] font-medium uppercase tracking-widest">Thinking...</span>
             </div>
           </div>
         )}
       </div>
 
-      <form onSubmit={handleSend} className="p-4 bg-white border-t border-green-50">
+      {/* Input Area */}
+      <div className="p-6 bg-white/50 backdrop-blur-md border-t border-black/5">
         <AnimatePresence>
           {image && (
             <motion.div 
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="relative mb-2"
+              className="relative inline-block mb-4"
             >
-              <img src={image} alt="Preview" className="h-20 w-20 object-cover rounded-lg border-2 border-green-500" />
-              <button 
+              <img src={image} alt="Preview" className="w-20 h-20 object-cover rounded-xl apple-shadow" />
+              <button
                 type="button"
                 onClick={() => setImage(null)}
-                className="absolute -top-2 -left-2 bg-red-500 text-white rounded-full p-1 shadow-lg"
+                className="absolute -top-2 -right-2 bg-black text-white rounded-full p-1 apple-shadow apple-transition hover:scale-110"
               >
                 <X size={12} />
               </button>
@@ -210,37 +217,49 @@ export function ChatBox({ location, user }: ChatBoxProps) {
           )}
         </AnimatePresence>
 
-        <div className="flex items-center gap-2">
-          <button 
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
-          >
-            <ImageIcon size={20} />
-          </button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleImageSelect} 
-            accept="image/*" 
-            className="hidden" 
-          />
-          <input 
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Andika swali lako hapa..."
-            className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <button 
-            type="submit"
-            disabled={(!input.trim() && !image) || isSending}
-            className="p-2 bg-green-600 text-white rounded-full disabled:opacity-50 shadow-lg hover:bg-green-700 transition-colors"
-          >
-            <Send size={20} />
-          </button>
-        </div>
-      </form>
+        <form onSubmit={handleSend} className="flex items-end gap-4">
+          <div className="flex-1 relative">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder="Ask Sauti anything..."
+              className="w-full bg-transparent border-none focus:ring-0 p-0 text-lg font-light placeholder:text-black/20 resize-none min-h-[44px] max-h-32 no-scrollbar"
+              rows={1}
+            />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-black/10" />
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageSelect}
+              accept="image/*"
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-3 bg-black/5 rounded-full text-black/40 cursor-pointer hover:bg-black/10 apple-transition"
+            >
+              <ImageIcon size={20} />
+            </button>
+            <button
+              type="submit"
+              disabled={isSending || (!input.trim() && !image)}
+              className="p-3 bg-apple-blue text-white rounded-full apple-shadow apple-transition disabled:opacity-20 hover:scale-[1.05] active:scale-[0.95]"
+            >
+              {isSending ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -217,153 +217,98 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-green-50 font-sans text-gray-900 pb-12">
+    <div className="min-h-screen bg-white font-sans text-black selection:bg-apple-blue/20">
       {/* Connection Status Banner */}
       {connectionStatus !== 'connected' && (
-        <div className={`fixed top-0 left-0 right-0 z-50 text-center py-1 text-[10px] font-bold ${connectionStatus === 'connecting' ? 'bg-yellow-400 text-yellow-900' : 'bg-red-500 text-white'}`}>
-          {connectionStatus === 'connecting' ? 'Inaunganisha kwenye hifadhidata... (Connecting to database...)' : 'Hitilafu ya muunganisho! (Connection Error! Check your internet)'}
+        <div className={`fixed top-0 left-0 right-0 z-[60] text-center py-1 text-[10px] font-bold tracking-widest uppercase ${connectionStatus === 'connecting' ? 'bg-yellow-400/90 text-yellow-900' : 'bg-red-500/90 text-white'} backdrop-blur-md`}>
+          {connectionStatus === 'connecting' ? 'Connecting to database...' : 'Connection Error'}
         </div>
       )}
-      {/* Header */}
-      <header className="bg-green-700 text-white p-6 shadow-lg sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Sprout className="w-8 h-8" />
-            <h1 className="text-2xl font-black tracking-tight">SAUTI-SHAMBA</h1>
+
+      {/* Minimal Top Bar */}
+      <header className="fixed top-0 left-0 right-0 z-50 glass apple-shadow">
+        <div className="max-w-2xl mx-auto px-6 h-16 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <Sprout className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-xl font-medium tracking-tight">Sauti</h1>
           </div>
+          
           <div className="flex items-center gap-4">
             {user ? (
-              <div className="flex items-center gap-3">
-                <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full border border-white/50" referrerPolicy="no-referrer" />
+              <div className="flex items-center gap-4">
                 <button 
-                  onClick={() => setShowHistory(!showHistory)}
-                  className="p-2 hover:bg-green-600 rounded-full transition-colors"
+                  onClick={() => setShowHistory(true)}
+                  className="p-2 hover:bg-black/5 rounded-full apple-transition"
                 >
-                  <HistoryIcon />
+                  <HistoryIcon className="w-5 h-5 opacity-60" />
                 </button>
-                <button onClick={handleLogout} className="text-xs font-bold uppercase opacity-70 hover:opacity-100">Logout</button>
+                <img 
+                  src={user.photoURL} 
+                  alt={user.displayName} 
+                  className="w-8 h-8 rounded-full apple-shadow" 
+                  referrerPolicy="no-referrer" 
+                />
               </div>
             ) : (
               <button 
                 onClick={handleLogin}
-                className="bg-white text-green-700 px-4 py-2 rounded-full font-bold text-sm shadow-md hover:bg-green-50 transition-colors"
+                className="text-sm font-medium text-apple-blue hover:opacity-70 apple-transition"
               >
-                Ingia (Login)
+                Sign In
               </button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-4 space-y-6">
-        {/* Location & Status Bar */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-stone-100 flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600">
-              <MapPin className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Eneo Lako (Location)</label>
-              <select 
-                value={location}
-                onChange={handleLocationChange}
-                className="w-full bg-transparent font-bold text-lg focus:outline-none appearance-none cursor-pointer"
-              >
-                {KENYAN_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {user && (
-            <div className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
-                <HistoryIcon className="w-6 h-6" />
-              </div>
-              <button 
-                onClick={() => setShowHistory(true)}
-                className="text-left"
-              >
-                <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest block">Historia</label>
-                <span className="font-bold text-lg">{history.length} Kumbukumbu</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Navigation Tabs - Modern Pill Style */}
-        <div className="flex p-1.5 bg-stone-200/50 backdrop-blur-md rounded-full w-full max-w-lg mx-auto overflow-x-auto no-scrollbar border border-stone-200">
-          {[
-            { id: 'voice', label: 'Sauti', icon: Mic },
-            { id: 'chat', label: 'Chat', icon: Send },
-            { id: 'weather', label: 'Hewa', icon: CloudSun },
-            { id: 'market', label: 'Soko', icon: TrendingUp }
-          ].map((tab) => (
-            <button 
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full font-bold transition-all text-sm whitespace-nowrap ${
-                activeTab === tab.id 
-                  ? 'bg-green-600 text-white shadow-lg scale-[1.02]' 
-                  : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
-              }`}
+      <main className="max-w-2xl mx-auto px-6 pt-24 pb-32 space-y-12">
+        {/* Location Selector - Minimal Underline Style */}
+        <section className="flex flex-col items-center text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-black/5 rounded-full">
+            <MapPin className="w-3.5 h-3.5 opacity-40" />
+            <select 
+              value={location}
+              onChange={handleLocationChange}
+              className="bg-transparent text-xs font-semibold uppercase tracking-widest focus:outline-none appearance-none cursor-pointer text-black/60"
             >
-              <tab.icon size={16} />
-              {tab.label}
-            </button>
-          ))}
-        </div>
+              {KENYAN_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        </section>
 
         {/* Main Content Area with Transitions */}
         <motion.div 
           key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="min-h-[400px]"
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="min-h-[500px]"
         >
           {activeTab === 'voice' && (
-            <div className="bg-white rounded-[2rem] shadow-xl shadow-stone-200/50 overflow-hidden border border-stone-100">
-              <div className="bg-green-600 p-5 text-white text-center font-bold flex items-center justify-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Mic className="w-4 h-4" />
-                </div>
-                Mshauri wa Sauti (Voice Advisor)
-              </div>
-              {!user ? (
-                <div className="p-16 text-center">
-                  <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Mic className="w-10 h-10 text-stone-300" />
-                  </div>
-                  <p className="text-stone-500 mb-8 font-medium max-w-xs mx-auto">Tafadhali ingia ili kuanza kurekodi na kuhifadhi historia yako.</p>
-                  <button 
-                    onClick={handleLogin}
-                    className="bg-green-600 text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl shadow-green-200 hover:bg-green-700 transition-all active:scale-95"
-                  >
-                    Ingia na Google
-                  </button>
-                </div>
-              ) : (
-                <VoiceRecorder 
-                  onRecordingComplete={handleRecordingComplete}
-                  isProcessing={isProcessing}
-                />
-              )}
-            </div>
+            <VoiceRecorder 
+              onRecordingComplete={handleRecordingComplete}
+              isProcessing={isProcessing}
+            />
           )}
 
           {activeTab === 'chat' && (
-            <div className="space-y-4">
+            <div className="space-y-8">
               {!user ? (
-                <div className="bg-white p-16 rounded-[2rem] shadow-xl shadow-stone-200/50 text-center border border-stone-100">
-                  <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Send className="w-10 h-10 text-stone-300" />
+                <div className="glass p-12 rounded-[32px] text-center space-y-6 apple-shadow">
+                  <div className="w-16 h-16 bg-apple-blue/10 rounded-2xl flex items-center justify-center mx-auto">
+                    <Send className="w-8 h-8 text-apple-blue" />
                   </div>
-                  <p className="text-stone-500 mb-8 font-medium max-w-xs mx-auto">Tafadhali ingia ili kuanza kuzungumza na mshauri.</p>
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-light">Chat with Sauti</h2>
+                    <p className="text-black/40 max-w-xs mx-auto">Sign in to start a conversation and track your farm's progress.</p>
+                  </div>
                   <button 
                     onClick={handleLogin}
-                    className="bg-green-600 text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl shadow-green-200 hover:bg-green-700 transition-all active:scale-95"
+                    className="bg-black text-white px-8 py-3.5 rounded-full font-medium apple-transition hover:scale-[1.02] active:scale-[0.96]"
                   >
-                    Ingia na Google
+                    Continue with Google
                   </button>
                 </div>
               ) : (
@@ -381,99 +326,126 @@ export default function App() {
           )}
         </motion.div>
 
-        {/* Quick Actions / Demo - Bento Style */}
-        {activeTab === 'voice' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {demoQuestions.map((q, i) => (
-              <button
-                key={i}
-                onClick={() => alert('Feature coming soon: Pre-recorded demo audio')}
-                className="group bg-white p-5 rounded-3xl shadow-sm hover:shadow-md transition-all text-left border border-stone-100 hover:border-green-200"
-              >
-                <div className="w-10 h-10 bg-stone-50 group-hover:bg-green-50 rounded-2xl flex items-center justify-center text-stone-400 group-hover:text-green-600 transition-colors mb-4">
-                  <Volume2 size={20} />
-                </div>
-                <div className="text-[10px] font-black text-stone-300 uppercase tracking-widest mb-1">Demo {i+1}</div>
-                <div className="font-bold text-stone-700 leading-tight">{q.label}</div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Response Area */}
+        {/* Response Area - Glass Morphism */}
         <AnimatePresence>
           {lastResponse && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="glass p-8 rounded-[32px] apple-shadow space-y-8"
             >
-              <div className={`p-6 rounded-3xl shadow-2xl border-4 ${
-                lastResponse.recommendation === 'SELL' ? 'bg-green-100 border-green-500' :
-                lastResponse.recommendation === 'URGENT ACTION' ? 'bg-red-100 border-red-500' :
-                'bg-blue-100 border-blue-500'
-              }`}>
-                <div className="flex justify-between items-start mb-4">
-                  <div className="text-4xl font-black uppercase tracking-tighter">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${
+                    lastResponse.recommendation === 'SELL' ? 'text-green-500' :
+                    lastResponse.recommendation === 'URGENT ACTION' ? 'text-red-500' :
+                    'text-apple-blue'
+                  }`}>
+                    Recommendation
+                  </span>
+                  <h2 className="text-4xl font-light tracking-tighter">
                     {lastResponse.recommendation}
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => speak(lastResponse.responseSwahili)} className="p-2 bg-white rounded-full shadow"><Volume2 /></button>
-                    <button onClick={copyToWhatsApp} className="p-2 bg-green-500 text-white rounded-full shadow"><Share2 /></button>
-                  </div>
+                  </h2>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => speak(lastResponse.responseSwahili)} 
+                    className="w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-black/5 apple-transition"
+                  >
+                    <Volume2 className="w-5 h-5 opacity-60" />
+                  </button>
+                  <button 
+                    onClick={copyToWhatsApp} 
+                    className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center hover:opacity-90 apple-transition"
+                  >
+                    <Share2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/30">Kiswahili</span>
+                  <p className="text-xl font-light leading-relaxed text-black/80">
+                    {lastResponse.responseSwahili}
+                  </p>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="bg-white p-4 rounded-2xl shadow-inner">
-                    <div className="text-xs font-bold text-gray-400 uppercase mb-2">Kiswahili</div>
-                    <div className="text-xl font-bold text-green-900 leading-tight">
-                      {lastResponse.responseSwahili}
-                    </div>
-                  </div>
+                <div className="h-px bg-black/5" />
 
-                  <div className="bg-white/50 p-4 rounded-2xl">
-                    <div className="text-xs font-bold text-gray-400 uppercase mb-2">English</div>
-                    <div className="text-lg text-gray-700 italic">
-                      {lastResponse.responseEnglish}
-                    </div>
-                  </div>
-
-                  {lastResponse.profitEstimate && (
-                    <div className="bg-yellow-100 p-4 rounded-2xl flex items-center gap-3 border-2 border-yellow-400">
-                      <TrendingUp className="text-yellow-600" />
-                      <div>
-                        <div className="text-xs font-bold text-yellow-700 uppercase">Makadirio ya Faida (Profit Estimate)</div>
-                        <div className="text-2xl font-black text-yellow-900">KSh {lastResponse.profitEstimate.toLocaleString()}</div>
-                      </div>
-                    </div>
-                  )}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/30">English</span>
+                  <p className="text-lg font-light leading-relaxed text-black/50 italic">
+                    {lastResponse.responseEnglish}
+                  </p>
                 </div>
+
+                {lastResponse.profitEstimate && (
+                  <div className="bg-apple-blue/5 p-6 rounded-2xl flex items-center justify-between border border-apple-blue/10">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-apple-blue/60">Profit Estimate</span>
+                      <div className="text-2xl font-medium tracking-tight">KSh {lastResponse.profitEstimate.toLocaleString()}</div>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-apple-blue/40" />
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </main>
 
-      {/* History Sidebar/Overlay */}
+      {/* Floating Bottom Nav */}
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <div className="glass apple-shadow rounded-full p-1.5 flex gap-1">
+          {[
+            { id: 'voice', label: 'Voice', icon: Mic },
+            { id: 'chat', label: 'Chat', icon: Send },
+            { id: 'weather', label: 'Weather', icon: CloudSun },
+            { id: 'market', label: 'Market', icon: TrendingUp }
+          ].map((tab) => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium apple-transition ${
+                activeTab === tab.id 
+                  ? 'bg-black text-white apple-shadow' 
+                  : 'text-black/40 hover:text-black hover:bg-black/5'
+              }`}
+            >
+              <tab.icon size={16} className={activeTab === tab.id ? 'opacity-100' : 'opacity-40'} />
+              <span className={activeTab === tab.id ? 'block' : 'hidden md:block'}>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* History Overlay */}
       <AnimatePresence>
         {showHistory && (
-          <div className="fixed inset-0 z-50 flex justify-end">
+          <div className="fixed inset-0 z-[100] flex justify-center items-end md:items-center p-4">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowHistory(false)}
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/20 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              className="relative w-full max-w-md bg-green-50 h-full shadow-2xl p-6 overflow-y-auto"
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              className="relative w-full max-w-lg glass apple-shadow rounded-[32px] p-8 max-h-[80vh] overflow-y-auto no-scrollbar"
             >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black text-green-800">HISTORIA</h2>
-                <button onClick={() => setShowHistory(false)}><X /></button>
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-light tracking-tight">History</h2>
+                <button 
+                  onClick={() => setShowHistory(false)}
+                  className="w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-black/5 apple-transition"
+                >
+                  <X className="w-5 h-5 opacity-40" />
+                </button>
               </div>
               <HistoryPanel 
                 conversations={history} 
@@ -487,38 +459,6 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Footer Nav (Mobile) */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t p-2 flex justify-around md:hidden">
-        <button 
-          onClick={() => setActiveTab('voice')}
-          className={`flex flex-col items-center ${activeTab === 'voice' ? 'text-green-600' : 'text-gray-400'}`}
-        >
-          <Mic size={20} />
-          <span className="text-[10px] font-bold">Sauti</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('chat')}
-          className={`flex flex-col items-center ${activeTab === 'chat' ? 'text-green-600' : 'text-gray-400'}`}
-        >
-          <Send size={20} />
-          <span className="text-[10px] font-bold">Chat</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('weather')}
-          className={`flex flex-col items-center ${activeTab === 'weather' ? 'text-green-600' : 'text-gray-400'}`}
-        >
-          <CloudSun size={20} />
-          <span className="text-[10px] font-bold">Hewa</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('market')}
-          className={`flex flex-col items-center ${activeTab === 'market' ? 'text-green-600' : 'text-gray-400'}`}
-        >
-          <TrendingUp size={20} />
-          <span className="text-[10px] font-bold">Soko</span>
-        </button>
-      </footer>
     </div>
   );
 }
