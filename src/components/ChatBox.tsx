@@ -56,7 +56,32 @@ export function ChatBox({ location }: ChatBoxProps) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height *= maxDim / width;
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width *= maxDim / height;
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          setImage(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
@@ -77,13 +102,14 @@ export function ChatBox({ location }: ChatBoxProps) {
 
     try {
       // Save user message
-      await addDoc(collection(db, 'chats'), {
+      const chatPath = 'chats';
+      await addDoc(collection(db, chatPath), {
         uid: user.uid,
         role: 'user',
         content: userMessage || (userImage ? "Picha ya shamba langu (Image of my farm)" : ""),
         imageUrl: userImage,
         timestamp: serverTimestamp()
-      });
+      }).catch(e => handleFirestoreError(e, OperationType.CREATE, chatPath));
 
       // Process with Gemini
       const base64Image = userImage ? userImage.split(',')[1] : undefined;
@@ -91,14 +117,21 @@ export function ChatBox({ location }: ChatBoxProps) {
       const aiResponse = await processChat(userMessage, base64Image, imageMimeType, location);
 
       // Save AI response
-      await addDoc(collection(db, 'chats'), {
+      await addDoc(collection(db, chatPath), {
         uid: user.uid,
         role: 'assistant',
         content: aiResponse,
         timestamp: serverTimestamp()
-      });
+      }).catch(e => handleFirestoreError(e, OperationType.CREATE, chatPath));
     } catch (err) {
       console.error('Chat error:', err);
+      // Add a local error message to the chat
+      setMessages(prev => [...prev, {
+        id: 'error-' + Date.now(),
+        role: 'assistant',
+        content: "Samahani, kulikuwa na hitilafu. Tafadhali jaribu tena. (Sorry, there was an error. Please try again.)",
+        timestamp: new Date()
+      }]);
     } finally {
       setIsSending(false);
     }

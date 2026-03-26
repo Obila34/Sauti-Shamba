@@ -1,6 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+function getAI() {
+  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+}
 
 export interface SautiResponse {
   crop: string;
@@ -13,6 +15,7 @@ export interface SautiResponse {
 }
 
 export async function processVoiceNote(audioBase64: string, mimeType: string, location: string): Promise<SautiResponse> {
+  const ai = getAI();
   // Step 1: Transcribe the audio
   const transcriptionResult = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
@@ -89,6 +92,7 @@ export async function processVoiceNote(audioBase64: string, mimeType: string, lo
 }
 
 export async function processChat(message: string, imageBase64?: string, imageMimeType?: string, location?: string): Promise<string> {
+  const ai = getAI();
   const parts: any[] = [
     {
       text: `You are Sauti-Shamba, a friendly AI farm advisor for smallholder farmers in Kenya. 
@@ -113,15 +117,21 @@ export async function processChat(message: string, imageBase64?: string, imageMi
     });
   }
 
-  const result = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: [{ parts }],
-  });
+  try {
+    const result = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [{ parts }],
+    });
 
-  return result.text || "Samahani, sikuweza kuelewa. (Sorry, I couldn't understand.)";
+    return result.text || "Samahani, sikuweza kuelewa. (Sorry, I couldn't understand.)";
+  } catch (error) {
+    console.error("Gemini Chat Error:", error);
+    return "Samahani, kulikuwa na hitilafu katika kuelewa picha yako. Tafadhali jaribu tena. (Sorry, there was an error understanding your image. Please try again.)";
+  }
 }
 
 export async function getMarketPrices() {
+  const ai = getAI();
   // Simulating the KenyaMarketChecker agent
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
@@ -135,6 +145,7 @@ export async function getMarketPrices() {
 }
 
 export async function getWeatherForecast(location: string) {
+  const ai = getAI();
   // Simulating the KenyaWeatherChecker agent
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
