@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: userSettings
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required) - The user's unique ID.
+    //   - defaultLocation: string (required) - The user's preferred Kenyan county.
+    //   - updatedAt: timestamp (optional) - Last update timestamp.
+    //
+    // Collection: conversations
+    // Document ID: {conversationId}
+    // Fields:
+    //   - uid: string (required) - The user's unique ID.
+    //   - timestamp: timestamp (required) - When the conversation happened.
+    //   - transcription: string (required) - The transcribed text.
+    //   - intent: string (optional) - Detected intent.
+    //   - crop: string (optional) - Extracted crop name.
+    //   - recommendation: string (optional) - SELL, HOLD, HEALTHY, or URGENT ACTION.
+    //   - responseSwahili: string (required) - The AI response in Swahili.
+    //   - responseEnglish: string (required) - The AI response in English.
+    //   - profitEstimate: number (optional) - Calculated profit.
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isValidUserSettings(data) {
+      return data.keys().hasAll(['uid', 'defaultLocation']) &&
+             data.uid == request.auth.uid &&
+             data.defaultLocation is string &&
+             data.defaultLocation.size() > 0 &&
+             data.defaultLocation.size() < 100;
+    }
+
+    function isValidConversation(data) {
+      return data.keys().hasAll(['uid', 'timestamp', 'transcription', 'responseSwahili', 'responseEnglish']) &&
+             data.uid == request.auth.uid &&
+             data.transcription is string && data.transcription.size() < 5000 &&
+             data.responseSwahili is string && data.responseSwahili.size() < 10000 &&
+             data.responseEnglish is string && data.responseEnglish.size() < 10000;
+    }
+
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['uid', 'role', 'content', 'timestamp']) &&
+             data.uid == request.auth.uid &&
+             data.role in ['user', 'assistant'] &&
+             data.content is string && data.content.size() < 10000;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /userSettings/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidUserSettings(request.resource.data);
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && isValidConversation(request.resource.data);
+      allow update, delete: if false; // History is immutable for this app
+    }
+
+    match /chats/{messageId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && isValidChatMessage(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // Connection test collection
+    match /_connection_test_/{docId} {
+      allow read: if true;
+    }
+  }
+}

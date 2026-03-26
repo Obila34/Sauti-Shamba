@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "userSettings": {
+      "title": "User Settings",
+      "description": "Stores user preferences like default location.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user's unique ID." },
+        "defaultLocation": { "type": "string", "description": "The user's preferred Kenyan county." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp." }
+      },
+      "required": ["uid", "defaultLocation"]
+    },
+    "conversation": {
+      "title": "Conversation",
+      "description": "Stores a single voice interaction and its response.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user's unique ID." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the conversation happened." },
+        "transcription": { "type": "string", "description": "The transcribed text from the voice note." },
+        "intent": { "type": "string", "description": "Detected intent (price, weather, disease)." },
+        "crop": { "type": "string", "description": "Extracted crop name." },
+        "recommendation": { "type": "string", "description": "SELL, HOLD, HEALTHY, or URGENT ACTION." },
+        "responseSwahili": { "type": "string", "description": "The AI response in Swahili." },
+        "responseEnglish": { "type": "string", "description": "The AI response in English." },
+        "profitEstimate": { "type": "number", "description": "Calculated profit if quantity was provided." }
+      },
+      "required": ["uid", "timestamp", "transcription", "responseSwahili", "responseEnglish"]
+    },
+    "chatMessage": {
+      "title": "Chat Message",
+      "description": "Stores a single message in a chat conversation.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user's unique ID." },
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string", "description": "The text content of the message." },
+        "imageUrl": { "type": "string", "description": "Optional URL or base64 of an image attached." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the message was sent." }
+      },
+      "required": ["uid", "role", "content", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/userSettings/{uid}": {
+      "schema": "userSettings",
+      "description": "User-specific settings."
+    },
+    "/conversations/{conversationId}": {
+      "schema": "conversation",
+      "description": "History of user conversations."
+    },
+    "/chats/{messageId}": {
+      "schema": "chatMessage",
+      "description": "Flat list of chat messages for the user."
+    }
+  }
+}
