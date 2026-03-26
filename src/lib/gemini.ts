@@ -16,8 +16,9 @@ export interface SautiResponse {
 
 export async function processVoiceNote(audioBase64: string, mimeType: string, location: string): Promise<SautiResponse> {
   const ai = getAI();
-  // Step 1: Transcribe the audio
-  const transcriptionResult = await ai.models.generateContent({
+  
+  // Single multimodal call for faster processing
+  const result = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: [
       {
@@ -29,30 +30,14 @@ export async function processVoiceNote(audioBase64: string, mimeType: string, lo
             },
           },
           {
-            text: "Transcribe this audio accurately. If it's in Swahili or Sheng, keep it in that language. If it's English, keep it in English. Return ONLY the transcription text.",
-          },
-        ],
-      },
-    ],
-  });
-
-  const transcription = transcriptionResult.text || "";
-
-  // Step 2: Generate advice based on transcription using Search
-  const adviceResult = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: [
-      {
-        parts: [
-          {
             text: `You are Sauti-Shamba, a friendly AI voice advisor for Kenyan smallholder farmers.
             The user is in ${location}.
             
-            Transcription of user's voice note: "${transcription}"
-            
-            1. Detect intent: market price, crop disease, weather, or multiple.
-            2. Extract crop name and quantity (if mentioned).
-            3. Provide advice using the latest Kenyan context (use Google Search for real-time prices/weather).
+            Listen to this audio and:
+            1. Transcribe it accurately (keep Swahili/Sheng as is).
+            2. Detect intent: market price, crop disease, weather, or multiple.
+            3. Extract crop name and quantity (if mentioned).
+            4. Provide advice using the latest Kenyan context (use Google Search for real-time prices/weather).
             
             Rules:
             - Always reply in BOTH Swahili (first) and English.
@@ -71,6 +56,7 @@ export async function processVoiceNote(audioBase64: string, mimeType: string, lo
       responseSchema: {
         type: Type.OBJECT,
         properties: {
+          transcription: { type: Type.STRING },
           intent: { type: Type.STRING },
           crop: { type: Type.STRING },
           recommendation: { type: Type.STRING, enum: ["SELL", "HOLD", "HEALTHY", "URGENT ACTION"] },
@@ -78,17 +64,12 @@ export async function processVoiceNote(audioBase64: string, mimeType: string, lo
           responseEnglish: { type: Type.STRING },
           profitEstimate: { type: Type.NUMBER },
         },
-        required: ["intent", "crop", "recommendation", "responseSwahili", "responseEnglish"],
+        required: ["transcription", "intent", "crop", "recommendation", "responseSwahili", "responseEnglish"],
       },
     },
   });
 
-  const advice = JSON.parse(adviceResult.text || "{}");
-  
-  return {
-    ...advice,
-    transcription,
-  };
+  return JSON.parse(result.text || "{}");
 }
 
 export async function processChat(message: string, imageBase64?: string, imageMimeType?: string, location?: string): Promise<string> {
@@ -132,13 +113,26 @@ export async function processChat(message: string, imageBase64?: string, imageMi
 
 export async function getMarketPrices() {
   const ai = getAI();
-  // Simulating the KenyaMarketChecker agent
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: "Scrape current 2026 Kenyan agricultural prices for maize, tomatoes, cabbages, potatoes, beans in major counties (Nakuru, Nairobi, Eldoret, Kisumu, Mombasa). Return clean structured JSON.",
+    contents: "Scrape current 2026 Kenyan agricultural prices for maize, tomatoes, cabbages, potatoes, beans in major markets (Muthurwa, Nakuru, Eldoret, Kisumu, Mombasa). Return clean structured JSON as an array of objects with keys: crop, price, trend (UP/DOWN/STABLE), market, change.",
     config: {
       tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            crop: { type: Type.STRING },
+            price: { type: Type.STRING },
+            trend: { type: Type.STRING, enum: ["UP", "DOWN", "STABLE"] },
+            market: { type: Type.STRING },
+            change: { type: Type.STRING },
+          },
+          required: ["crop", "price", "trend", "market"],
+        },
+      },
     }
   });
   return JSON.parse(response.text || "[]");
@@ -146,13 +140,32 @@ export async function getMarketPrices() {
 
 export async function getWeatherForecast(location: string) {
   const ai = getAI();
-  // Simulating the KenyaWeatherChecker agent
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: `Scrape 3-day weather forecast (rain, temperature) for ${location} county, Kenya. Include short farming impact notes. Return clean structured JSON.`,
+    contents: `Scrape 3-day weather forecast (rain, temperature) for ${location} county, Kenya. Include short farming impact notes. Return clean structured JSON with 'summary' (string) and 'forecast' (array of objects with day, temp, condition, impact).`,
     config: {
       tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          summary: { type: Type.STRING },
+          forecast: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                day: { type: Type.STRING },
+                temp: { type: Type.STRING },
+                condition: { type: Type.STRING },
+                impact: { type: Type.STRING },
+              },
+              required: ["day", "temp", "condition", "impact"],
+            },
+          },
+        },
+        required: ["summary", "forecast"],
+      },
     }
   });
   return JSON.parse(response.text || "{}");

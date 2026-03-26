@@ -32,6 +32,8 @@ import {
 import { VoiceRecorder } from './components/VoiceRecorder';
 import { HistoryPanel } from './components/HistoryPanel';
 import { ChatBox } from './components/ChatBox';
+import { WeatherView } from './components/WeatherView';
+import { MarketView } from './components/MarketView';
 import { processVoiceNote, SautiResponse } from './lib/gemini';
 import { handleFirestoreError, OperationType } from './lib/error-handler';
 import Markdown from 'react-markdown';
@@ -47,7 +49,7 @@ export default function App() {
   const [lastResponse, setLastResponse] = useState<SautiResponse | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [activeTab, setActiveTab] = useState<'voice' | 'chat'>('voice');
+  const [activeTab, setActiveTab] = useState<'voice' | 'chat' | 'weather' | 'market'>('voice');
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
 
   useEffect(() => {
@@ -152,25 +154,26 @@ export default function App() {
 
   const handleRecordingComplete = async (blob: Blob) => {
     setIsProcessing(true);
+    setLastResponse(null); // Clear previous response immediately
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = async () => {
-        const base64data = (reader.result as string).split(',')[1];
-        const result = await processVoiceNote(base64data, blob.type, location);
-        setLastResponse(result);
-        
-        if (user) {
-          const path = 'conversations';
-          await addDoc(collection(db, path), {
-            uid: user.uid,
-            timestamp: serverTimestamp(),
-            ...result
-          }).catch(e => handleFirestoreError(e, OperationType.CREATE, path));
-        }
-        
-        speak(result.responseSwahili);
-      };
+      const buffer = await blob.arrayBuffer();
+      const base64data = btoa(
+        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      
+      const result = await processVoiceNote(base64data, blob.type, location);
+      setLastResponse(result);
+      
+      if (user) {
+        const path = 'conversations';
+        addDoc(collection(db, path), {
+          uid: user.uid,
+          timestamp: serverTimestamp(),
+          ...result
+        }).catch(e => handleFirestoreError(e, OperationType.CREATE, path));
+      }
+      
+      speak(result.responseSwahili);
     } catch (err) {
       console.error(err);
       alert('Hitilafu ilitokea. Tafadhali jaribu tena.');
@@ -252,53 +255,91 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-4 space-y-8">
-        {/* Location Selector */}
-        <div className="bg-white p-4 rounded-2xl shadow-md flex items-center gap-3">
-          <MapPin className="text-green-600" />
-          <div className="flex-1">
-            <label className="text-xs font-bold text-gray-400 uppercase">Eneo Lako (Your Location)</label>
-            <select 
-              value={location}
-              onChange={handleLocationChange}
-              className="w-full bg-transparent font-bold text-lg focus:outline-none"
-            >
-              {KENYAN_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+      <main className="max-w-4xl mx-auto p-4 space-y-6">
+        {/* Location & Status Bar */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-stone-100 flex items-center gap-4">
+            <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600">
+              <MapPin className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Eneo Lako (Location)</label>
+              <select 
+                value={location}
+                onChange={handleLocationChange}
+                className="w-full bg-transparent font-bold text-lg focus:outline-none appearance-none cursor-pointer"
+              >
+                {KENYAN_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
           </div>
+
+          {user && (
+            <div className="bg-white p-4 rounded-3xl shadow-sm border border-stone-100 flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                <HistoryIcon className="w-6 h-6" />
+              </div>
+              <button 
+                onClick={() => setShowHistory(true)}
+                className="text-left"
+              >
+                <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest block">Historia</label>
+                <span className="font-bold text-lg">{history.length} Kumbukumbu</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 p-1 bg-green-100 rounded-2xl w-fit mx-auto">
-          <button 
-            onClick={() => setActiveTab('voice')}
-            className={`px-6 py-2 rounded-xl font-bold transition-all ${activeTab === 'voice' ? 'bg-green-600 text-white shadow-md' : 'text-green-800 hover:bg-green-200'}`}
-          >
-            Sauti (Voice)
-          </button>
-          <button 
-            onClick={() => setActiveTab('chat')}
-            className={`px-6 py-2 rounded-xl font-bold transition-all ${activeTab === 'chat' ? 'bg-green-600 text-white shadow-md' : 'text-green-800 hover:bg-green-200'}`}
-          >
-            Chat (Text/Image)
-          </button>
+        {/* Navigation Tabs - Modern Pill Style */}
+        <div className="flex p-1.5 bg-stone-200/50 backdrop-blur-md rounded-full w-full max-w-lg mx-auto overflow-x-auto no-scrollbar border border-stone-200">
+          {[
+            { id: 'voice', label: 'Sauti', icon: Mic },
+            { id: 'chat', label: 'Chat', icon: Send },
+            { id: 'weather', label: 'Hewa', icon: CloudSun },
+            { id: 'market', label: 'Soko', icon: TrendingUp }
+          ].map((tab) => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full font-bold transition-all text-sm whitespace-nowrap ${
+                activeTab === tab.id 
+                  ? 'bg-green-600 text-white shadow-lg scale-[1.02]' 
+                  : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
+              }`}
+            >
+              <tab.icon size={16} />
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* Main Content Area */}
-        <div className="space-y-8">
-          {activeTab === 'voice' ? (
-            <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-              <div className="bg-green-600 p-4 text-white text-center font-bold">
+        {/* Main Content Area with Transitions */}
+        <motion.div 
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="min-h-[400px]"
+        >
+          {activeTab === 'voice' && (
+            <div className="bg-white rounded-[2rem] shadow-xl shadow-stone-200/50 overflow-hidden border border-stone-100">
+              <div className="bg-green-600 p-5 text-white text-center font-bold flex items-center justify-center gap-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Mic className="w-4 h-4" />
+                </div>
                 Mshauri wa Sauti (Voice Advisor)
               </div>
               {!user ? (
-                <div className="p-12 text-center">
-                  <p className="text-gray-600 mb-6 font-medium">Tafadhali ingia ili kuanza kurekodi na kuhifadhi historia yako.</p>
+                <div className="p-16 text-center">
+                  <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Mic className="w-10 h-10 text-stone-300" />
+                  </div>
+                  <p className="text-stone-500 mb-8 font-medium max-w-xs mx-auto">Tafadhali ingia ili kuanza kurekodi na kuhifadhi historia yako.</p>
                   <button 
                     onClick={handleLogin}
-                    className="bg-green-600 text-white px-8 py-4 rounded-full font-bold text-xl shadow-xl hover:bg-green-700 transition-colors"
+                    className="bg-green-600 text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl shadow-green-200 hover:bg-green-700 transition-all active:scale-95"
                   >
-                    Ingia na Google (Login with Google)
+                    Ingia na Google
                   </button>
                 </div>
               ) : (
@@ -308,38 +349,56 @@ export default function App() {
                 />
               )}
             </div>
-          ) : (
+          )}
+
+          {activeTab === 'chat' && (
             <div className="space-y-4">
               {!user ? (
-                <div className="bg-white p-12 rounded-3xl shadow-xl text-center">
-                  <p className="text-gray-600 mb-6 font-medium">Tafadhali ingia ili kuanza kuzungumza na mshauri.</p>
+                <div className="bg-white p-16 rounded-[2rem] shadow-xl shadow-stone-200/50 text-center border border-stone-100">
+                  <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Send className="w-10 h-10 text-stone-300" />
+                  </div>
+                  <p className="text-stone-500 mb-8 font-medium max-w-xs mx-auto">Tafadhali ingia ili kuanza kuzungumza na mshauri.</p>
                   <button 
                     onClick={handleLogin}
-                    className="bg-green-600 text-white px-8 py-4 rounded-full font-bold text-xl shadow-xl hover:bg-green-700 transition-colors"
+                    className="bg-green-600 text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl shadow-green-200 hover:bg-green-700 transition-all active:scale-95"
                   >
-                    Ingia na Google (Login with Google)
+                    Ingia na Google
                   </button>
                 </div>
               ) : (
-                <ChatBox location={location} />
+                <ChatBox location={location} user={user} />
               )}
             </div>
           )}
-        </div>
 
-        {/* Demo Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {demoQuestions.map((q, i) => (
-            <button
-              key={i}
-              onClick={() => alert('Feature coming soon: Pre-recorded demo audio')}
-              className="bg-white p-4 rounded-xl shadow hover:shadow-md transition-shadow text-left border-l-4 border-green-500"
-            >
-              <div className="text-xs text-gray-400 font-bold uppercase mb-1">Demo {i+1}</div>
-              <div className="font-medium text-gray-700">{q.label}</div>
-            </button>
-          ))}
-        </div>
+          {activeTab === 'weather' && (
+            <WeatherView location={location} />
+          )}
+
+          {activeTab === 'market' && (
+            <MarketView />
+          )}
+        </motion.div>
+
+        {/* Quick Actions / Demo - Bento Style */}
+        {activeTab === 'voice' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {demoQuestions.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => alert('Feature coming soon: Pre-recorded demo audio')}
+                className="group bg-white p-5 rounded-3xl shadow-sm hover:shadow-md transition-all text-left border border-stone-100 hover:border-green-200"
+              >
+                <div className="w-10 h-10 bg-stone-50 group-hover:bg-green-50 rounded-2xl flex items-center justify-center text-stone-400 group-hover:text-green-600 transition-colors mb-4">
+                  <Volume2 size={20} />
+                </div>
+                <div className="text-[10px] font-black text-stone-300 uppercase tracking-widest mb-1">Demo {i+1}</div>
+                <div className="font-bold text-stone-700 leading-tight">{q.label}</div>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Response Area */}
         <AnimatePresence>
@@ -445,8 +504,20 @@ export default function App() {
           <Send size={20} />
           <span className="text-[10px] font-bold">Chat</span>
         </button>
-        <button className="flex flex-col items-center text-gray-400"><CloudSun size={20} /><span className="text-[10px] font-bold">Hali ya Hewa</span></button>
-        <button className="flex flex-col items-center text-gray-400"><TrendingUp size={20} /><span className="text-[10px] font-bold">Soko</span></button>
+        <button 
+          onClick={() => setActiveTab('weather')}
+          className={`flex flex-col items-center ${activeTab === 'weather' ? 'text-green-600' : 'text-gray-400'}`}
+        >
+          <CloudSun size={20} />
+          <span className="text-[10px] font-bold">Hewa</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('market')}
+          className={`flex flex-col items-center ${activeTab === 'market' ? 'text-green-600' : 'text-gray-400'}`}
+        >
+          <TrendingUp size={20} />
+          <span className="text-[10px] font-bold">Soko</span>
+        </button>
       </footer>
     </div>
   );

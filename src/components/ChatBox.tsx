@@ -17,9 +17,10 @@ interface Message {
 
 interface ChatBoxProps {
   location: string;
+  user: any;
 }
 
-export function ChatBox({ location }: ChatBoxProps) {
+export function ChatBox({ location, user }: ChatBoxProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -28,7 +29,6 @@ export function ChatBox({ location }: ChatBoxProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const user = auth.currentUser;
     if (!user) return;
 
     const q = query(
@@ -39,11 +39,12 @@ export function ChatBox({ location }: ChatBoxProps) {
     );
 
     const unsubscribe = onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() } as Message)));
+      const newMessages = snap.docs.map(d => ({ id: d.id, ...d.data() } as Message));
+      setMessages(newMessages);
     }, (err) => handleFirestoreError(err, OperationType.GET, 'chats'));
 
     return unsubscribe;
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (scrollRef.current) {

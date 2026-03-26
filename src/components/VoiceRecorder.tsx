@@ -51,10 +51,13 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onRecordingComplet
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={isRecording ? stopRecording : startRecording}
+        onMouseDown={startRecording}
+        onMouseUp={stopRecording}
+        onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
+        onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
         disabled={isProcessing}
-        className={`w-48 h-48 rounded-full flex flex-col items-center justify-center shadow-2xl transition-colors ${
-          isRecording ? 'bg-red-500' : 'bg-green-600'
+        className={`w-48 h-48 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all duration-300 ${
+          isRecording ? 'bg-red-500 scale-110 ring-8 ring-red-100' : 'bg-green-600'
         } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {isProcessing ? (
