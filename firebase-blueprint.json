@@ -1,59 +1,82 @@
 {
   "entities": {
-    "userSettings": {
-      "title": "User Settings",
-      "description": "Stores user preferences like default location.",
+    "Farmer": {
+      "title": "Farmer",
+      "description": "Profile information for a farmer.",
       "type": "object",
       "properties": {
-        "uid": { "type": "string", "description": "The user's unique ID." },
-        "defaultLocation": { "type": "string", "description": "The user's preferred Kenyan county." },
-        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp." }
+        "name": { "type": "string", "description": "Farmer's name" },
+        "county": { "type": "string", "description": "County of residence" },
+        "town": { "type": "string", "description": "Town of residence" },
+        "gps_lat": { "type": "number", "description": "Latitude coordinate" },
+        "gps_lng": { "type": "number", "description": "Longitude coordinate" },
+        "crops": { "type": "array", "items": { "type": "string" }, "description": "Crops grown by the farmer" },
+        "farm_size_acres": { "type": "number", "description": "Size of the farm in acres" },
+        "language_preference": { "type": "string", "enum": ["en", "sw", "sheng"], "description": "Preferred language" },
+        "created_at": { "type": "string", "format": "date-time", "description": "Timestamp of creation" },
+        "last_active": { "type": "string", "format": "date-time", "description": "Timestamp of last activity" }
       },
-      "required": ["uid", "defaultLocation"]
+      "required": ["name", "county", "town", "gps_lat", "gps_lng", "created_at"]
     },
-    "conversation": {
+    "FieldData": {
+      "title": "FieldData",
+      "description": "Satellite and environmental data for a farmer's field.",
+      "type": "object",
+      "properties": {
+        "alu_field_boundary": { "type": "array", "items": { "type": "object" }, "description": "GPS polygon coordinates" },
+        "alu_acreage": { "type": "number", "description": "Calculated farm size" },
+        "alu_water_bodies": { "type": "array", "items": { "type": "object" }, "description": "Nearby water sources" },
+        "amed_detected_crop": { "type": "string", "description": "Satellite-detected crop" },
+        "amed_crop_stage": { "type": "string", "description": "Current growth stage" },
+        "amed_sowing_date": { "type": "string", "format": "date", "description": "Detected sowing date" },
+        "amed_harvest_estimate": { "type": "string", "format": "date", "description": "Predicted harvest window" },
+        "amed_ndvi": { "type": "number", "description": "Vegetation index (0-1)" },
+        "amed_last_updated": { "type": "string", "format": "date-time", "description": "Last update from satellite" },
+        "historical_seasons": { "type": "array", "items": { "type": "object" }, "description": "Past season records" }
+      }
+    },
+    "Conversation": {
       "title": "Conversation",
-      "description": "Stores a single voice interaction and its response.",
+      "description": "A chat session between a farmer and Sauti Shamba.",
       "type": "object",
       "properties": {
-        "uid": { "type": "string", "description": "The user's unique ID." },
-        "timestamp": { "type": "string", "format": "date-time", "description": "When the conversation happened." },
-        "transcription": { "type": "string", "description": "The transcribed text from the voice note." },
-        "intent": { "type": "string", "description": "Detected intent (price, weather, disease)." },
-        "crop": { "type": "string", "description": "Extracted crop name." },
-        "recommendation": { "type": "string", "description": "SELL, HOLD, HEALTHY, or URGENT ACTION." },
-        "responseSwahili": { "type": "string", "description": "The AI response in Swahili." },
-        "responseEnglish": { "type": "string", "description": "The AI response in English." },
-        "profitEstimate": { "type": "number", "description": "Calculated profit if quantity was provided." }
-      },
-      "required": ["uid", "timestamp", "transcription", "responseSwahili", "responseEnglish"]
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["user", "model"] },
+              "content": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "session_date": { "type": "string", "format": "date-time" },
+        "topics_covered": { "type": "array", "items": { "type": "string" } },
+        "photos_analyzed": { "type": "array", "items": { "type": "string" } }
+      }
     },
-    "chatMessage": {
-      "title": "Chat Message",
-      "description": "Stores a single message in a chat conversation.",
+    "DiseaseReport": {
+      "title": "DiseaseReport",
+      "description": "A report of a crop disease diagnosis.",
       "type": "object",
       "properties": {
-        "uid": { "type": "string", "description": "The user's unique ID." },
-        "role": { "type": "string", "enum": ["user", "assistant"] },
-        "content": { "type": "string", "description": "The text content of the message." },
-        "imageUrl": { "type": "string", "description": "Optional URL or base64 of an image attached." },
-        "timestamp": { "type": "string", "format": "date-time", "description": "When the message was sent." }
-      },
-      "required": ["uid", "role", "content", "timestamp"]
+        "farmer_id": { "type": "string" },
+        "county": { "type": "string" },
+        "location_lat": { "type": "number" },
+        "location_lng": { "type": "number" },
+        "disease_identified": { "type": "string" },
+        "confidence": { "type": "string", "enum": ["High", "Medium", "Low"] },
+        "photo_url": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "verified": { "type": "boolean" }
+      }
     }
   },
   "firestore": {
-    "/userSettings/{uid}": {
-      "schema": "userSettings",
-      "description": "User-specific settings."
-    },
-    "/conversations/{conversationId}": {
-      "schema": "conversation",
-      "description": "History of user conversations."
-    },
-    "/chats/{messageId}": {
-      "schema": "chatMessage",
-      "description": "Flat list of chat messages for the user."
-    }
+    "/farmers/{farmerId}": { "schema": "Farmer", "description": "Farmer profiles." },
+    "/farmers/{farmerId}/field_data/current": { "schema": "FieldData", "description": "Current satellite data for the farmer." },
+    "/farmers/{farmerId}/conversations/{sessionId}": { "schema": "Conversation", "description": "Chat history." },
+    "/disease_reports/{reportId}": { "schema": "DiseaseReport", "description": "Global disease reports for heatmap." }
   }
 }

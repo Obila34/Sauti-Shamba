@@ -1,113 +1,129 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --color-apple-blue: #007AFF;
-  --apple-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --font-ui: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Lora", serif;
+
+  /* Backgrounds */
+  --color-bg-primary: #F5F2EE;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-dark: #1A1A1A;
+  
+  /* Brand Colors */
+  --color-green-primary: #2D6A4F;
+  --color-green-light: #52B788;
+  --color-green-pale: #D8F3DC;
+  --color-earth-brown: #8B5E3C;
+  --color-earth-pale: #F0E6DA;
+  --color-sun-gold: #E9C46A;
+  --color-sky-blue: #4A9ECA;
+
+  /* Text */
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6B6B6B;
+  --color-text-tertiary: #ABABAB;
+
+  /* Shadows */
+  --shadow-apple-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-apple-md: 0 8px 32px rgba(0,0,0,0.10);
+  --shadow-apple-lg: 0 20px 60px rgba(0,0,0,0.14);
+  --shadow-apple-green: 0 8px 32px rgba(45,106,79,0.20);
+
+  /* Radius */
+  --radius-apple-sm: 8px;
+  --radius-apple-md: 14px;
+  --radius-apple-lg: 20px;
+  --radius-apple-xl: 28px;
 }
 
 @layer base {
   body {
-    @apply bg-white text-black antialiased selection:bg-apple-blue/20;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-bg-primary text-text-primary font-ui antialiased;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
   }
 
   h1, h2, h3 {
-    @apply font-light tracking-tight;
+    @apply font-display;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
   }
 }
 
-@layer utilities {
-  .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20;
-  }
-  
-  .glass-dark {
-    @apply bg-black/70 backdrop-blur-xl border border-white/10;
-  }
-
-  .apple-shadow {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
-
-  .apple-transition {
-    transition: all 400ms var(--apple-easing);
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+/* Animations */
+@keyframes messageIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Siri Orb Animations */
-@keyframes orb-rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes orb-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.05); opacity: 1; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
 }
 
-@keyframes aurora {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes voicePulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.4); opacity: 0.3; }
+  100% { transform: scale(1); opacity: 0.8; }
 }
 
-.orb-container {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.animate-message-in {
+  animation: messageIn 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-.orb-aurora {
-  position: absolute;
-  width: 140%;
-  height: 140%;
-  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-  background-size: 400% 400%;
-  filter: blur(40px);
-  opacity: 0.3;
-  border-radius: 50%;
-  animation: aurora 15s ease infinite, orb-rotate 20s linear infinite;
+.animate-fade-up {
+  animation: fadeUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-.orb-core {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #a855f7, #3b82f6, #06b6d4);
-  box-shadow: 
-    0 0 40px rgba(59, 130, 246, 0.4),
-    inset 0 0 20px rgba(255, 255, 255, 0.2);
-  transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+.typing-dot {
+  animation: typingBounce 1.2s infinite ease-in-out;
 }
 
-.orb-idle {
-  animation: orb-pulse 4s ease-in-out infinite;
+.voice-ring {
+  animation: voicePulse 1.5s ease-in-out infinite;
 }
 
-.orb-listening {
-  transform: scale(1.2);
-  filter: brightness(1.2);
-  box-shadow: 
-    0 0 60px rgba(59, 130, 246, 0.6),
-    0 0 100px rgba(6, 182, 212, 0.3);
+/* Components */
+.apple-card {
+  @apply bg-bg-secondary rounded-apple-lg shadow-apple-sm p-6 transition-all duration-200;
 }
 
-.orb-processing {
-  transform: scale(0.9);
-  filter: saturate(1.5);
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+.apple-card-interactive:active {
+  @apply scale-[0.97] shadow-apple-sm;
+}
+
+.btn-apple-primary {
+  @apply h-[52px] px-6 bg-green-primary text-white rounded-full font-semibold flex items-center justify-center gap-2 shadow-apple-green transition-all active:scale-[0.98] hover:brightness-105;
+}
+
+.btn-apple-secondary {
+  @apply h-[52px] px-6 bg-transparent text-green-primary border-2 border-green-light rounded-full font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98];
+}
+
+.glass-header {
+  @apply sticky top-0 z-40 bg-white/72 backdrop-blur-[20px] saturate-[180%] border-b border-black/5;
+}
+
+.glass-nav {
+  @apply fixed bottom-0 left-0 right-0 z-40 bg-white/72 backdrop-blur-[20px] saturate-[180%] border-t border-black/5 pb-4;
+}
+
+.asymmetric-bubble-ai {
+  @apply rounded-[18px_18px_18px_4px];
+}
+
+.asymmetric-bubble-user {
+  @apply rounded-[18px_18px_4px_18px];
+}
+
+.scroll-bounce {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }

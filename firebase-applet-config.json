@@ -1,10 +1,10 @@
 {
-  "projectId": "build-490207",
-  "appId": "1:424696931018:web:24ec1705f49cb7573d0a33",
-  "apiKey": "AIzaSyCmhZiY_Z1XiaUEBD7WWbdpR81h8GlFgx8",
-  "authDomain": "build-490207.firebaseapp.com",
+  "projectId": "sauti-shamba",
+  "appId": "1:956921863053:web:64d640d3d8c9d5e3b37bc4",
+  "apiKey": "AIzaSyD86NlqSvSY-haF9UICfX00sXwsZNZ6ARM",
+  "authDomain": "sauti-shamba.firebaseapp.com",
   "firestoreDatabaseId": "ai-studio-f7b2e98f-2a6a-49f6-84f0-bd9a1c6c8b32",
-  "storageBucket": "build-490207.firebasestorage.app",
-  "messagingSenderId": "424696931018",
+  "storageBucket": "sauti-shamba.firebasestorage.app",
+  "messagingSenderId": "956921863053",
   "measurementId": ""
 }

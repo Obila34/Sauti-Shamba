@@ -1,7 +1,9 @@
 {
-  "name": "Sauti-Shamba — Voice Farm Advisor",
-  "description": "Friendly AI voice advisor for Kenyan smallholder farmers, providing real-time market prices, weather forecasts, and crop health advice in Swahili, Sheng, and English.",
+  "name": "Sauti Shamba",
+  "description": "Kenya's most intelligent voice-powered farm assistant, built on Google's AI for Agriculture. Personalized field-level advice, photo diagnosis, and market insights.",
   "requestFramePermissions": [
-    "microphone"
+    "camera",
+    "microphone",
+    "geolocation"
   ]
 }

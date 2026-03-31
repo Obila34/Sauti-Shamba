@@ -4,32 +4,20 @@ service cloud.firestore {
     // ===============================================================
     // Assumed Data Model
     // ===============================================================
+    // Collection: farmers
+    // Fields: name, county, town, gps_lat, gps_lng, crops, farm_size_acres, language_preference, created_at, last_active
     //
-    // Collection: userSettings
-    // Document ID: {uid}
-    // Fields:
-    //   - uid: string (required) - The user's unique ID.
-    //   - defaultLocation: string (required) - The user's preferred Kenyan county.
-    //   - updatedAt: timestamp (optional) - Last update timestamp.
+    // Collection: field_data (subcollection of farmers)
+    // Fields: alu_field_boundary, alu_acreage, alu_water_bodies, amed_detected_crop, amed_crop_stage, amed_sowing_date, amed_harvest_estimate, amed_ndvi, amed_last_updated, historical_seasons
     //
-    // Collection: conversations
-    // Document ID: {conversationId}
-    // Fields:
-    //   - uid: string (required) - The user's unique ID.
-    //   - timestamp: timestamp (required) - When the conversation happened.
-    //   - transcription: string (required) - The transcribed text.
-    //   - intent: string (optional) - Detected intent.
-    //   - crop: string (optional) - Extracted crop name.
-    //   - recommendation: string (optional) - SELL, HOLD, HEALTHY, or URGENT ACTION.
-    //   - responseSwahili: string (required) - The AI response in Swahili.
-    //   - responseEnglish: string (required) - The AI response in English.
-    //   - profitEstimate: number (optional) - Calculated profit.
+    // Collection: conversations (subcollection of farmers)
+    // Fields: messages, session_date, topics_covered, photos_analyzed
     //
+    // Collection: disease_reports
+    // Fields: farmer_id, county, location_lat, location_lng, disease_identified, confidence, photo_url, timestamp, verified
     // ===============================================================
 
-    // ===============================================================
     // Helper Functions
-    // ===============================================================
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -38,57 +26,55 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    function isDocOwner() {
-      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "obilasam3@gmail.com" && request.auth.token.email_verified == true));
     }
 
-    function isValidUserSettings(data) {
-      return data.keys().hasAll(['uid', 'defaultLocation']) &&
-             data.uid == request.auth.uid &&
-             data.defaultLocation is string &&
-             data.defaultLocation.size() > 0 &&
-             data.defaultLocation.size() < 100;
+    function isValidFarmer(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.county is string &&
+             data.town is string &&
+             data.gps_lat is number &&
+             data.gps_lng is number;
     }
 
-    function isValidConversation(data) {
-      return data.keys().hasAll(['uid', 'timestamp', 'transcription', 'responseSwahili', 'responseEnglish']) &&
-             data.uid == request.auth.uid &&
-             data.transcription is string && data.transcription.size() < 5000 &&
-             data.responseSwahili is string && data.responseSwahili.size() < 10000 &&
-             data.responseEnglish is string && data.responseEnglish.size() < 10000;
+    function isValidDiseaseReport(data) {
+      return data.farmer_id is string &&
+             data.disease_identified is string &&
+             data.confidence in ['High', 'Medium', 'Low'] &&
+             data.photo_url is string;
     }
 
-    function isValidChatMessage(data) {
-      return data.keys().hasAll(['uid', 'role', 'content', 'timestamp']) &&
-             data.uid == request.auth.uid &&
-             data.role in ['user', 'assistant'] &&
-             data.content is string && data.content.size() < 10000;
-    }
-
-    // ===============================================================
     // Rules
-    // ===============================================================
+    match /farmers/{farmerId} {
+      allow read: if isOwner(farmerId) || isAdmin();
+      allow create: if isOwner(farmerId) && isValidFarmer(request.resource.data);
+      allow update: if isOwner(farmerId) && isValidFarmer(request.resource.data);
 
-    match /userSettings/{uid} {
-      allow read: if isOwner(uid);
-      allow create, update: if isOwner(uid) && isValidUserSettings(request.resource.data);
+      match /field_data/{docId} {
+        allow read: if isOwner(farmerId) || isAdmin();
+        allow write: if isAdmin(); // Only admins/system can update satellite data
+      }
+
+      match /conversations/{sessionId} {
+        allow read: if isOwner(farmerId) || isAdmin();
+        allow create: if isOwner(farmerId);
+        allow update: if isOwner(farmerId);
+      }
     }
 
-    match /conversations/{conversationId} {
-      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
-      allow create: if isAuthenticated() && isValidConversation(request.resource.data);
-      allow update, delete: if false; // History is immutable for this app
+    match /disease_reports/{reportId} {
+      allow read: if isAuthenticated(); // All farmers can see the heatmap
+      allow create: if isAuthenticated() && isValidDiseaseReport(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
-    match /chats/{messageId} {
-      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
-      allow create: if isAuthenticated() && isValidChatMessage(request.resource.data);
-      allow update, delete: if false;
-    }
-
-    // Connection test collection
-    match /_connection_test_/{docId} {
-      allow read: if true;
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin();
     }
   }
 }
