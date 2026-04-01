@@ -37,7 +37,7 @@
     },
     "Conversation": {
       "title": "Conversation",
-      "description": "A chat session between a farmer and Sauti Shamba.",
+      "description": "A chat session between a farmer and Zao.",
       "type": "object",
       "properties": {
         "messages": {

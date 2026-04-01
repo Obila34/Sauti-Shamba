@@ -1,5 +1,5 @@
 {
-  "name": "Sauti Shamba",
+  "name": "Zao",
   "description": "Kenya's most intelligent voice-powered farm assistant, built on Google's AI for Agriculture. Personalized field-level advice, photo diagnosis, and market insights.",
   "requestFramePermissions": [
     "camera",

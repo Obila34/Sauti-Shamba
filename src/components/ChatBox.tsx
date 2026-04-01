@@ -228,7 +228,7 @@ export function ChatBox({ location, user }: ChatBoxProps) {
                   handleSend();
                 }
               }}
-              placeholder="Ask Sauti anything..."
+              placeholder="Ask Zao anything..."
               className="w-full bg-transparent border-none focus:ring-0 p-0 text-lg font-light placeholder:text-black/20 resize-none min-h-[44px] max-h-32 no-scrollbar"
               rows={1}
             />

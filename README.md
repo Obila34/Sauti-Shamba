@@ -1,6 +1,6 @@
-# Sauti-Shamba — Voice Farm Advisor 🌾🎙️
+# Zao — Voice Farm Advisor 🌾🎙️
 
-**Sauti-Shamba** is a premium, AI-powered voice advisor designed specifically for Kenyan smallholder farmers. It provides real-time, actionable advice on market prices, weather forecasts, and crop health in the languages farmers use most: **Swahili, Sheng, and English**.
+**Zao** is a premium, AI-powered voice advisor designed specifically for Kenyan smallholder farmers. It provides real-time, actionable advice on market prices, weather forecasts, and crop health in the languages farmers use most: **Swahili, Sheng, and English**.
 
 ---
 
@@ -10,10 +10,10 @@
 A high-end, mobile-first interface featuring **glassmorphism**, fluid animations, and an intuitive **Bottom Navigation Bar** for effortless access to all tools.
 
 ### 🎙️ AI Voice Advisor (Sauti)
-Get expert farming advice just by speaking. Sauti-Shamba uses advanced AI to understand your questions and respond with clear, spoken guidance in under 4 sentences.
+Get expert farming advice just by speaking. Zao uses advanced AI to understand your questions and respond with clear, spoken guidance in under 4 sentences.
 
 ### 📸 Photo Diagnosis (Vision AI)
-Take a photo of an affected leaf, stem, or crop. Powered by **Google Vision AI**, Sauti-Shamba examines the image to provide immediate diagnostic results and treatment options.
+Take a photo of an affected leaf, stem, or crop. Powered by **Google Vision AI**, Zao examines the image to provide immediate diagnostic results and treatment options.
 
 ### 📈 Market Pulse
 Track real-time prices for crops across Kenyan markets (Migori, Nairobi, Nakuru). Includes trend indicators and **Price Alerts** to help you decide when to sell.
@@ -48,7 +48,7 @@ A practical tool for smallholder farmers to estimate net margins by balancing in
 2.  **Home**: View your daily weather forecast, market summaries, and quick actions.
 3.  **Diagnose**: Use your camera to identify pests or diseases in seconds.
 4.  **Farm**: Track your 1.5-acre field's growth and review your planting history.
-5.  **Chat**: Speak or type to Sauti for budget-conscious, hyper-local advice.
+5.  **Chat**: Speak or type to Zao for budget-conscious, hyper-local advice.
     *   *"Bei ya mahindi ikoje leo Nairobi?"*
     *   *"Mbona majani ya nyanya yangu yanageuka manjano?"*
 6.  **Calculator**: Input your seasonal costs to see your projected profit.
@@ -65,4 +65,4 @@ A practical tool for smallholder farmers to estimate net margins by balancing in
 
 ## 🌍 Impact
 
-Sauti-Shamba aims to bridge the information gap for smallholder farmers, empowering them with the data they need to increase yields, reduce losses, and get better prices for their hard work.
+Zao aims to bridge the information gap for smallholder farmers, empowering them with the data they need to increase yields, reduce losses, and get better prices for their hard work.

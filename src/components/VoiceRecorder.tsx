@@ -107,7 +107,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onRecordingComplet
         className="mt-12 text-center space-y-2"
       >
         <p className="text-2xl font-light tracking-tight text-black/80">
-          {isProcessing ? 'Inachakata...' : isHolding ? 'Tusikilize...' : 'Sema na Sauti'}
+          {isProcessing ? 'Inachakata...' : isHolding ? 'Tusikilize...' : 'Sema na Zao'}
         </p>
         <p className="text-sm text-black/40 font-medium uppercase tracking-[0.2em]">
           {isHolding ? 'Release to process' : 'Press and hold to speak'}

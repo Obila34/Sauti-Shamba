@@ -65,7 +65,7 @@ import { format } from 'date-fns';
 import { Farmer, FieldData, Message, Conversation, DiseaseReport } from './types';
 
 // --- Constants ---
-const SYSTEM_INSTRUCTION = `You are Sauti Shamba — Kenya's most intelligent voice-powered farm assistant, built on Google's AI for Agriculture platform.
+const SYSTEM_INSTRUCTION = `You are Zao — Kenya's most intelligent voice-powered farm assistant, built on Google's AI for Agriculture platform.
 You are warm, trusted, and practical. Every answer is hyper-local, actionable, and budget-conscious. You speak the farmer's language.
 
 Always match the farmer's language. Swahili → respond in Swahili. English → English. Mixed/Sheng → friendly mix.
@@ -88,6 +88,12 @@ const MARKET_PRICES = [
   { crop: "Beans", price: "8,500", trend: "down", icon: "🫘" },
   { crop: "Potatoes", price: "1,200", trend: "up", icon: "🥔" },
   { crop: "Tomatoes", price: "2,400", trend: "up", icon: "🍅" },
+];
+
+const COUNTIES = [
+  "Migori", "Nakuru", "Kiambu", "Nairobi", "Mombasa", 
+  "Uasin Gishu", "Kilifi", "Machakos", "Kisumu", "Meru",
+  "Bungoma", "Kakamega", "Nyeri", "Murang'a", "Kericho"
 ];
 
 const QUICK_ACTIONS = [
@@ -176,10 +182,19 @@ const App = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [selectedCounty, setSelectedCounty] = useState('Migori');
+  const [selectedTown, setSelectedTown] = useState('');
+  const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recordingInterval = useRef<any>(null);
+  const selectionRef = useRef({ county: 'Migori', town: '', crops: [] as string[] });
+
+  // Keep ref in sync with state for auth listener
+  useEffect(() => {
+    selectionRef.current = { county: selectedCounty, town: selectedTown, crops: selectedCrops };
+  }, [selectedCounty, selectedTown, selectedCrops]);
 
   // --- Splash Screen Timer ---
   useEffect(() => {
@@ -204,11 +219,11 @@ const App = () => {
           const newFarmer: Farmer = {
             id: u.uid,
             name: u.displayName || "Farmer",
-            county: "Migori",
-            town: "Rongo",
+            county: selectionRef.current.county,
+            town: selectionRef.current.town || "Rongo",
             gps_lat: -1.1234,
             gps_lng: 34.5678,
-            crops: ["Maize", "Sweet Potatoes"],
+            crops: selectionRef.current.crops.length > 0 ? selectionRef.current.crops : ["Maize", "Beans"],
             farm_size_acres: 1.5,
             language_preference: 'sw',
             created_at: serverTimestamp(),
@@ -247,7 +262,7 @@ const App = () => {
           const lastSession = querySnapshot.docs[0].data() as Conversation;
           setMessages(lastSession.messages);
         } else {
-          const initialGreeting = `Habari ${u.displayName?.split(' ')[0] || 'Mkulima'}! Karibu sana — welcome to Sauti Shamba. I can see your farm in Migori. Our satellite data shows your 1.5 acres field is currently in vegetative stage. How can I help you today?`;
+          const initialGreeting = `Habari ${u.displayName?.split(' ')[0] || 'Mkulima'}! Karibu sana — welcome to Zao. I can see your farm in ${selectionRef.current.county}. Our satellite data shows your 1.5 acres field is currently in vegetative stage. How can I help you today?`;
           setMessages([{ role: 'model', content: initialGreeting, timestamp: new Date().toISOString() }]);
         }
       }
@@ -449,7 +464,7 @@ SEASON: Long Rains 2026, Week 3 of planting season.
         transition={{ delay: 0.4 }}
         className="text-4xl font-bold font-display mb-2"
       >
-        Sauti Shamba
+        Zao
       </motion.h1>
       <motion.p 
         initial={{ y: 12, opacity: 0 }}
@@ -457,7 +472,7 @@ SEASON: Long Rains 2026, Week 3 of planting season.
         transition={{ delay: 0.5 }}
         className="text-lg"
       >
-        Sauti ya Mkulima wa Kisasa
+        Zao: Mkulima wa Kisasa
       </motion.p>
       <div className="fixed bottom-0 left-0 right-0 h-0.5 bg-white/10">
         <motion.div 
@@ -489,10 +504,12 @@ SEASON: Long Rains 2026, Week 3 of planting season.
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-text-tertiary uppercase tracking-wide">County</label>
             <div className="relative">
-              <select className="input appearance-none pr-10">
-                <option>Migori</option>
-                <option>Nakuru</option>
-                <option>Kiambu</option>
+              <select 
+                value={selectedCounty}
+                onChange={(e) => setSelectedCounty(e.target.value)}
+                className="input appearance-none pr-10"
+              >
+                {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-primary rotate-90" />
             </div>
@@ -500,16 +517,31 @@ SEASON: Long Rains 2026, Week 3 of planting season.
 
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-text-tertiary uppercase tracking-wide">Town / Village</label>
-            <input className="input" placeholder="e.g. Rongo, Awendo..." />
+            <input 
+              className="input" 
+              placeholder="e.g. Rongo, Awendo..." 
+              value={selectedTown}
+              onChange={(e) => setSelectedTown(e.target.value)}
+            />
           </div>
 
           <div className="space-y-3">
             <p className="text-sm font-medium text-text-secondary">What crops do you grow?</p>
             <div className="flex flex-wrap gap-2">
-              {['Maize', 'Beans', 'Potatoes', 'Kale'].map(crop => (
+              {['Maize', 'Beans', 'Potatoes', 'Kale', 'Coffee', 'Tea'].map(crop => (
                 <button 
                   key={crop}
-                  className="px-4 py-2 rounded-full text-sm font-medium border border-green-light text-green-primary hover:bg-green-pale transition-colors"
+                  onClick={() => {
+                    setSelectedCrops(prev => 
+                      prev.includes(crop) ? prev.filter(c => c !== crop) : [...prev, crop]
+                    );
+                  }}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-sm font-medium border transition-colors",
+                    selectedCrops.includes(crop) 
+                      ? "bg-green-primary border-green-primary text-white" 
+                      : "border-green-light text-green-primary hover:bg-green-pale"
+                  )}
                 >
                   {crop}
                 </button>
@@ -530,7 +562,7 @@ SEASON: Long Rains 2026, Week 3 of planting season.
         </div>
 
         <p className="text-center text-[12px] text-text-tertiary">
-          Sauti Shamba · Powered by Google AI
+          Zao · Powered by Google AI
         </p>
       </div>
     </motion.div>
@@ -695,7 +727,7 @@ SEASON: Long Rains 2026, Week 3 of planting season.
               <div className="flex justify-between items-end px-1">
                 <div>
                   <h2 className="text-[17px] font-bold">Market Prices Today</h2>
-                  <p className="text-[13px] text-text-secondary">Migori · Rongo · Awendo</p>
+                  <p className="text-[13px] text-text-secondary">{farmer?.county} · {farmer?.town}</p>
                 </div>
                 <button className="text-green-primary text-[13px] font-bold">See All</button>
               </div>
@@ -721,7 +753,7 @@ SEASON: Long Rains 2026, Week 3 of planting season.
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <p className="text-[14px] font-bold">Fall Armyworm Alert in Migori</p>
+                <p className="text-[14px] font-bold">Fall Armyworm Alert in {farmer?.county}</p>
                 <p className="text-[12px] opacity-90">12 farms reported this week. Tap to learn more.</p>
               </div>
               <ChevronRight className="w-5 h-5 opacity-70" />
@@ -744,7 +776,7 @@ SEASON: Long Rains 2026, Week 3 of planting season.
                   <ArrowLeft className="w-6 h-6 text-green-primary" />
                 </button>
                 <div className="text-center">
-                  <h2 className="text-[17px] font-bold">Sauti Shamba</h2>
+                  <h2 className="text-[17px] font-bold">Zao</h2>
                   <div className="flex items-center justify-center gap-1">
                     <div className="w-1.5 h-1.5 bg-green-light rounded-full" />
                     <span className="text-[11px] text-green-primary font-bold uppercase tracking-wide">Active</span>
@@ -890,7 +922,7 @@ SEASON: Long Rains 2026, Week 3 of planting season.
                     <TrendingUp className="w-4 h-4 mr-1" /> +4.2%
                   </span>
                 </div>
-                <p className="text-[12px] opacity-70">Updated 2 hours ago from Migori Main Market</p>
+                <p className="text-[12px] opacity-70">Updated 2 hours ago from {farmer?.county} Main Market</p>
               </div>
               
               <div className="space-y-3">
@@ -1113,7 +1145,7 @@ SEASON: Long Rains 2026, Week 3 of planting season.
                           <Markdown>{diagnosisResult}</Markdown>
                         </div>
                         <div className="pt-4 border-t border-black/5 flex gap-3">
-                          <button onClick={() => setActiveTab('chat')} className="btn-apple-primary flex-1 h-10 text-sm">Chat with Sauti</button>
+                          <button onClick={() => setActiveTab('chat')} className="btn-apple-primary flex-1 h-10 text-sm">Chat with Zao</button>
                           <button className="btn-apple-secondary flex-1 h-10 text-sm">Find Agrovet</button>
                         </div>
                       </div>

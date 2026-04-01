@@ -30,7 +30,7 @@ export async function processVoiceNote(audioBase64: string, mimeType: string, lo
             },
           },
           {
-            text: `You are Sauti-Shamba, a friendly AI voice advisor for Kenyan smallholder farmers.
+            text: `You are Zao, a friendly AI voice advisor for Kenyan smallholder farmers.
             The user is in ${location}.
             
             Listen to this audio and:
@@ -76,7 +76,7 @@ export async function processChat(message: string, imageBase64?: string, imageMi
   const ai = getAI();
   const parts: any[] = [
     {
-      text: `You are Sauti-Shamba, a friendly AI farm advisor for smallholder farmers in Kenya. 
+      text: `You are Zao, a friendly AI farm advisor for smallholder farmers in Kenya. 
       The user is currently in ${location || 'Kenya'}.
       
       Your goal is to provide specific, practical, and actionable farm advice. 
